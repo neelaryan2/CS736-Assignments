@@ -1,0 +1,784 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Strategy for RGB denoising</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-22"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Strategy for RGB denoising</h1><!--introduction--><pre>We run the algorithm used in Q1 for all the 3 channels of the RGB image
+separately. We keep the hyper-parameters alpha and gamma same for each
+of the channels, i.e alpha_red = alpha_green = alpha_blue and gamma_red
+= gamma_green = gamma_blue.</pre><pre>This is equivalent to having the objective cost
+function as the sum of the cost functions for all the individual layers.
+Because while taking the derivative of the cost funtion with repect to
+any pixel, only those pixels would remain which are in the same channel,
+as the MRF prior considers only the neighbours in the same channel.
+We keep the cost function as mentioned above and not have all different
+alphas and gammas because by this we can capture to some extent the fact
+that the layers are not totally independent. And this is done by having
+all their contributions in the cost function.</pre><pre>If the alphas and gammas were independent of each other, i.e we would do
+tuning separately for each layer, then that would imply that the RGB
+channels are totally unrelated, which is not what we want.</pre><pre>Now, with the method used, we can also keep different hyper-parameters
+for each layer, in case we want to consider different amounts of noise
+in each layer.</pre><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Prepping the script</a></li><li><a href="#2">Reading the data</a></li><li><a href="#3">MRF prior: Quadratic function</a></li><li><a href="#4">Objective function plot for Quadratic Function MRF</a></li><li><a href="#5">Colormap plot for Quadratic Prior</a></li><li><a href="#6">MRF prior: Discontinuity-adaptive Huber function</a></li><li><a href="#7">Objective function plot for Huber Function MRF</a></li><li><a href="#8">Colormap plot for Huber Prior</a></li><li><a href="#9">MRF prior: Discontinuity-adaptive Log function</a></li><li><a href="#10">Objective function plot for Log Function MRF</a></li><li><a href="#11">Colormap plot for Log Prior</a></li></ul></div><h2 id="1">Prepping the script</h2><pre class="codeinput">clc; clear; close <span class="string">all</span>;
+addpath(<span class="string">'../functions/'</span>);
+actual = abs(double(imread(<span class="string">'../../data/histology_noiseless.png'</span>))/255);
+</pre><h2 id="2">Reading the data</h2><pre class="codeinput">fprintf(<span class="string">'Analysis for RGB image\n'</span>);
+img = abs(double(imread(<span class="string">'../../data/histology_noisy.png'</span>))/255);
+</pre><pre class="codeoutput">Analysis for RGB image
+</pre><h2 id="3">MRF prior: Quadratic function</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Quadratic function\n'</span>);
+alpha_opt = 0.705; gamma_opt = 1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy1, costs1] = descent(img(:,:,1), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy2, costs2] = descent(img(:,:,2), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy3, costs3] = descent(img(:,:,3), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+quad_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters Testing</span>
+fprintf(<span class="string">'alpha(a) = %f\n'</span>, alpha_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a) = %f\n'</span>, error);
+</pre><pre class="codeoutput">MRF prior: Quadratic function
+RRMSE(noiseless, noisy) : 0.199383
+alpha(a) = 0.705000
+RRMSE(a) = 0.053565
+RRMSE(0.8a) = 0.059414
+RRMSE(1.2a) = 0.058610
+</pre><h2 id="4">Objective function plot for Quadratic Function MRF</h2><pre class="codeinput">figure;
+plot(costs1);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Quadratic function (red channel)'</span>);
+
+figure;
+plot(costs2);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Quadratic function (green channel)'</span>);
+
+figure;
+plot(costs3);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Quadratic function (blue channel)'</span>);
+
+magnification = 200;
+
+<span class="comment">%-------------------------%</span>
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <h2 id="5">Colormap plot for Quadratic Prior</h2><pre class="codeinput">figure;
+colormap(jet)
+imshow(actual, <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noiseless image'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(quad_denoised, <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Quadratic prior)'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(img, <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noisy image'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(quad_denoised(:,:,1), <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Quadratic) red channel'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(quad_denoised(:,:,2), <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Quadratic) green channel'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(quad_denoised(:,:,3), <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Quadratic) blue channel'</span>);
+colorbar
+<span class="comment">%-------------------%</span>
+</pre><img vspace="5" hspace="5" src="myMainScript_04.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_05.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_06.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_07.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_08.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_09.png" alt=""> <h2 id="6">MRF prior: Discontinuity-adaptive Huber function</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Discontinuity-adaptive Huber function\n'</span>);
+alpha_opt = 0.8; gamma_opt = 0.064; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy1, costs1] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, costs2] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, costs3] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+cdim = min(min(size(costs1,2),size(costs2,2)),size(costs3,2));
+costs = (costs1(:,1:cdim)+costs2(:,1:cdim)+costs3(:,1:cdim))/3;
+noisy = cat(3,noisy1,noisy2,noisy3);
+huber_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters</span>
+fprintf(<span class="string">'alpha(a) = %f, gamma(b) = %f\n'</span>, alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, b) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 0.8b) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 1.2b) = %f\n'</span>, error);
+</pre><pre class="codeoutput">MRF prior: Discontinuity-adaptive Huber function
+RRMSE(noiseless, noisy) : 0.199383
+alpha(a) = 0.800000, gamma(b) = 0.064000
+RRMSE(a, b) = 0.053964
+RRMSE(0.8a, b) = 0.075131
+RRMSE(a, 0.8b) = 0.054213
+RRMSE(1.2a, b) = 0.072406
+RRMSE(a, 1.2b) = 0.054090
+</pre><h2 id="7">Objective function plot for Huber Function MRF</h2><pre class="codeinput">figure;
+plot(costs1);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Huber function (red channel)'</span>);
+
+figure;
+plot(costs2);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Huber function (green channel)'</span>);
+
+figure;
+plot(costs3);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Huber function (blue channel)'</span>);
+
+<span class="comment">%-------------------%</span>
+</pre><img vspace="5" hspace="5" src="myMainScript_10.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_11.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_12.png" alt=""> <h2 id="8">Colormap plot for Huber Prior</h2><pre class="codeinput">figure;
+colormap(jet)
+imshow(actual, <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noiseless image'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(huber_denoised, <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Huber prior)'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(img, <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noisy image'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(huber_denoised(:,:,1), <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Huber) red channel'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(huber_denoised(:,:,2), <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Huber) green channel'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(huber_denoised(:,:,3), <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Huber) blue channel'</span>);
+colorbar
+
+<span class="comment">%-------------------%</span>
+</pre><img vspace="5" hspace="5" src="myMainScript_13.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_14.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_15.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_16.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_17.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_18.png" alt=""> <h2 id="9">MRF prior: Discontinuity-adaptive Log function</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Discontinuity-adaptive Log function\n'</span>);
+alpha_opt = 0.80; gamma_opt = 20.1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy1, costs1] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, costs2] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, costs3] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+log_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters</span>
+fprintf(<span class="string">'alpha(a) = %f, gamma(b) = %f\n'</span>, alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, b) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 0.8b) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 1.2b) = %f\n'</span>, error);
+
+<span class="comment">%-------------------%</span>
+</pre><pre class="codeoutput">MRF prior: Discontinuity-adaptive Log function
+RRMSE(noiseless, noisy) : 0.199383
+alpha(a) = 0.800000, gamma(b) = 20.100000
+RRMSE(a, b) = 0.054326
+RRMSE(0.8a, b) = 0.067474
+RRMSE(a, 0.8b) = 0.054328
+RRMSE(1.2a, b) = 0.072390
+RRMSE(a, 1.2b) = 0.054324
+</pre><h2 id="10">Objective function plot for Log Function MRF</h2><pre class="codeinput">figure;
+plot(costs1);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Log function (red channel)'</span>);
+
+figure;
+plot(costs2);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Log function (green channel)'</span>);
+
+figure;
+plot(costs3);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Log function (blue channel)'</span>);
+
+<span class="comment">%-------------------%</span>
+</pre><img vspace="5" hspace="5" src="myMainScript_19.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_20.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_21.png" alt=""> <h2 id="11">Colormap plot for Log Prior</h2><pre class="codeinput">figure;
+colormap(jet)
+imshow(actual, <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noiseless image'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(log_denoised, <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Log prior)'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(img, <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noisy image'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(log_denoised(:,:,1), <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Log) red channel'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(log_denoised(:,:,2), <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Log) green channel'</span>);
+colorbar
+
+figure;
+colormap(jet)
+imshow(log_denoised(:,:,3), <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Log) blue channel'</span>);
+colorbar
+
+<span class="comment">%-----------%</span>
+</pre><img vspace="5" hspace="5" src="myMainScript_22.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_23.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_24.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_25.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_26.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_27.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Strategy for RGB denoising
+% 
+%  We run the algorithm used in Q1 for all the 3 channels of the RGB image
+%  separately. We keep the hyper-parameters alpha and gamma same for each
+%  of the channels, i.e alpha_red = alpha_green = alpha_blue and gamma_red
+%  = gamma_green = gamma_blue.
+%
+%  This is equivalent to having the objective cost
+%  function as the sum of the cost functions for all the individual layers.
+%  Because while taking the derivative of the cost funtion with repect to
+%  any pixel, only those pixels would remain which are in the same channel,
+%  as the MRF prior considers only the neighbours in the same channel.
+%  We keep the cost function as mentioned above and not have all different
+%  alphas and gammas because by this we can capture to some extent the fact
+%  that the layers are not totally independent. And this is done by having
+%  all their contributions in the cost function. 
+%
+%  If the alphas and gammas were independent of each other, i.e we would do
+%  tuning separately for each layer, then that would imply that the RGB
+%  channels are totally unrelated, which is not what we want.
+%
+%  Now, with the method used, we can also keep different hyper-parameters
+%  for each layer, in case we want to consider different amounts of noise
+%  in each layer.
+%  
+% 
+
+
+%% Prepping the script
+clc; clear; close all;
+addpath('../functions/');
+actual = abs(double(imread('../../data/histology_noiseless.png'))/255);
+
+%% Reading the data
+fprintf('Analysis for RGB image\n');
+img = abs(double(imread('../../data/histology_noisy.png'))/255);
+
+%% MRF prior: Quadratic function
+fprintf('MRF prior: Quadratic function\n');
+alpha_opt = 0.705; gamma_opt = 1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy1, costs1] = descent(img(:,:,1), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy2, costs2] = descent(img(:,:,2), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy3, costs3] = descent(img(:,:,3), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+quad_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters Testing
+fprintf('alpha(a) = %f\n', alpha_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a) = %f\n', error);
+
+%% Objective function plot for Quadratic Function MRF
+figure;
+plot(costs1);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Quadratic function (red channel)');
+
+figure;
+plot(costs2);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Quadratic function (green channel)');
+
+figure;
+plot(costs3);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Quadratic function (blue channel)');
+
+magnification = 200;
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-%
+
+%% Colormap plot for Quadratic Prior
+figure;
+colormap(jet)
+imshow(actual, 'InitialMagnification', magnification);
+title('Noiseless image');
+colorbar
+
+figure;
+colormap(jet)
+imshow(quad_denoised, 'InitialMagnification', magnification);
+title('Denoised image (Quadratic prior)');
+colorbar
+
+figure;
+colormap(jet)
+imshow(img, 'InitialMagnification', magnification);
+title('Noisy image');
+colorbar
+
+figure;
+colormap(jet)
+imshow(quad_denoised(:,:,1), 'InitialMagnification', magnification);
+title('Denoised image (Quadratic) red channel');
+colorbar
+
+figure;
+colormap(jet)
+imshow(quad_denoised(:,:,2), 'InitialMagnification', magnification);
+title('Denoised image (Quadratic) green channel');
+colorbar
+
+figure;
+colormap(jet)
+imshow(quad_denoised(:,:,3), 'InitialMagnification', magnification);
+title('Denoised image (Quadratic) blue channel');
+colorbar
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-%
+
+%% MRF prior: Discontinuity-adaptive Huber function
+fprintf('MRF prior: Discontinuity-adaptive Huber function\n');
+alpha_opt = 0.8; gamma_opt = 0.064; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy1, costs1] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, costs2] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, costs3] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+cdim = min(min(size(costs1,2),size(costs2,2)),size(costs3,2));
+costs = (costs1(:,1:cdim)+costs2(:,1:cdim)+costs3(:,1:cdim))/3;
+noisy = cat(3,noisy1,noisy2,noisy3);
+huber_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters
+fprintf('alpha(a) = %f, gamma(b) = %f\n', alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, b) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 0.8b) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 1.2b) = %f\n', error);
+
+%% Objective function plot for Huber Function MRF
+figure;
+plot(costs1);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Huber function (red channel)');
+
+figure;
+plot(costs2);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Huber function (green channel)');
+
+figure;
+plot(costs3);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Huber function (blue channel)');
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-%
+
+%% Colormap plot for Huber Prior
+figure;
+colormap(jet)
+imshow(actual, 'InitialMagnification', magnification);
+title('Noiseless image');
+colorbar
+
+figure;
+colormap(jet)
+imshow(huber_denoised, 'InitialMagnification', magnification);
+title('Denoised image (Huber prior)');
+colorbar
+
+figure;
+colormap(jet)
+imshow(img, 'InitialMagnification', magnification);
+title('Noisy image');
+colorbar
+
+figure;
+colormap(jet)
+imshow(huber_denoised(:,:,1), 'InitialMagnification', magnification);
+title('Denoised image (Huber) red channel');
+colorbar
+
+figure;
+colormap(jet)
+imshow(huber_denoised(:,:,2), 'InitialMagnification', magnification);
+title('Denoised image (Huber) green channel');
+colorbar
+
+figure;
+colormap(jet)
+imshow(huber_denoised(:,:,3), 'InitialMagnification', magnification);
+title('Denoised image (Huber) blue channel');
+colorbar
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-%
+
+%% MRF prior: Discontinuity-adaptive Log function
+fprintf('MRF prior: Discontinuity-adaptive Log function\n');
+alpha_opt = 0.80; gamma_opt = 20.1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy1, costs1] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, costs2] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, costs3] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+log_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters
+fprintf('alpha(a) = %f, gamma(b) = %f\n', alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, b) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 0.8b) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy1, ~] = descent(img(:,:,1), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy2, ~] = descent(img(:,:,2), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+[noisy3, ~] = descent(img(:,:,3), eps, alpha, gamma, epochs, @log_grad, @log_cost);
+noisy = cat(3,noisy1,noisy2,noisy3);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 1.2b) = %f\n', error);
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-%
+
+%% Objective function plot for Log Function MRF
+figure;
+plot(costs1);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Log function (red channel)');
+
+figure;
+plot(costs2);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Log function (green channel)');
+
+figure;
+plot(costs3);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Log function (blue channel)');
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-%
+
+%% Colormap plot for Log Prior
+
+figure;
+colormap(jet)
+imshow(actual, 'InitialMagnification', magnification);
+title('Noiseless image');
+colorbar
+
+figure;
+colormap(jet)
+imshow(log_denoised, 'InitialMagnification', magnification);
+title('Denoised image (Log prior)');
+colorbar
+
+figure;
+colormap(jet)
+imshow(img, 'InitialMagnification', magnification);
+title('Noisy image');
+colorbar
+
+figure;
+colormap(jet)
+imshow(log_denoised(:,:,1), 'InitialMagnification', magnification);
+title('Denoised image (Log) red channel');
+colorbar
+
+figure;
+colormap(jet)
+imshow(log_denoised(:,:,2), 'InitialMagnification', magnification);
+title('Denoised image (Log) green channel');
+colorbar
+
+figure;
+colormap(jet)
+imshow(log_denoised(:,:,3), 'InitialMagnification', magnification);
+title('Denoised image (Log) blue channel');
+colorbar
+
+%REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH-%
+##### SOURCE END #####
+--></body></html>

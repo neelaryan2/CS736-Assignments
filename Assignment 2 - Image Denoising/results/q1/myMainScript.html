@@ -1,0 +1,1055 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-22"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Prepping the script</a></li><li><a href="#2">Reading the data (LOW noise)</a></li><li><a href="#3">MRF prior: Quadratic function (LOW noise)</a></li><li><a href="#4">MRF prior: Discontinuity-adaptive Huber function (LOW noise)</a></li><li><a href="#5">MRF prior: Discontinuity-adaptive Log function (LOW noise)</a></li><li><a href="#6">Colormap plot of all three MRFs (LOW noise)</a></li><li><a href="#7">Reading the data (MEDIUM noise)</a></li><li><a href="#8">MRF prior: Quadratic function (MEDIUM noise)</a></li><li><a href="#9">MRF prior: Discontinuity-adaptive Huber function (MEDIUM noise)</a></li><li><a href="#10">MRF prior: Discontinuity-adaptive Log function (MEDIUM noise)</a></li><li><a href="#11">Colormap plot of all three MRFs (MEDIUM noise)</a></li><li><a href="#12">Reading the data (HIGH noise)</a></li><li><a href="#13">MRF prior: Quadratic function (HIGH noise)</a></li><li><a href="#14">MRF prior: Discontinuity-adaptive Huber function (HIGH noise)</a></li><li><a href="#15">MRF prior: Discontinuity-adaptive Log function (HIGH noise)</a></li><li><a href="#16">Colormap plot of all three MRFs (HIGH noise)</a></li></ul></div><h2 id="1">Prepping the script</h2><pre class="codeinput">clc; clear; close <span class="string">all</span>;
+addpath(<span class="string">'../functions/'</span>);
+actual = abs(double(imread(<span class="string">'../../data/mri_image_noiseless.png'</span>))/255);
+</pre><h2 id="2">Reading the data (LOW noise)</h2><pre class="codeinput">fprintf(<span class="string">'Analysis for LOW noise level image\n'</span>);
+img = abs(double(imread(<span class="string">'../../data/mri_image_noise_level_low.png'</span>))/255);
+</pre><pre class="codeoutput">Analysis for LOW noise level image
+</pre><h2 id="3">MRF prior: Quadratic function (LOW noise)</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Quadratic function (LOW noise)\n'</span>);
+alpha_opt = 0.085; gamma_opt = 1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+quad_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters Testing</span>
+fprintf(<span class="string">'alpha(a) = %f\n'</span>, alpha_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a) = %f\n'</span>, error);
+
+<span class="comment">% Objective function plot</span>
+figure;
+plot(costs);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Quadratic function'</span>);
+</pre><pre class="codeoutput">MRF prior: Quadratic function (LOW noise)
+RRMSE(noiseless, noisy) : 0.051898
+alpha(a) = 0.085000
+RRMSE(a) = 0.046735
+RRMSE(0.8a) = 0.046941
+RRMSE(1.2a) = 0.046842
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <h2 id="4">MRF prior: Discontinuity-adaptive Huber function (LOW noise)</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Discontinuity-adaptive Huber function (LOW noise)\n'</span>);
+alpha_opt = 0.373248; gamma_opt = 0.026214; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+huber_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters</span>
+fprintf(<span class="string">'alpha(a) = %f, gamma(b) = %f\n'</span>, alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, b) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 0.8b) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 1.2b) = %f\n'</span>, error);
+
+<span class="comment">% Objective function plot</span>
+figure;
+plot(costs);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Huber function'</span>);
+</pre><pre class="codeoutput">MRF prior: Discontinuity-adaptive Huber function (LOW noise)
+RRMSE(noiseless, noisy) : 0.051898
+alpha(a) = 0.373248, gamma(b) = 0.026214
+RRMSE(a, b) = 0.043781
+RRMSE(0.8a, b) = 0.044381
+RRMSE(a, 0.8b) = 0.043818
+RRMSE(1.2a, b) = 0.043991
+RRMSE(a, 1.2b) = 0.043986
+</pre><img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <h2 id="5">MRF prior: Discontinuity-adaptive Log function (LOW noise)</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Discontinuity-adaptive Log function (LOW noise)\n'</span>);
+alpha_opt = 0.210; gamma_opt = 0.502; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+log_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters</span>
+fprintf(<span class="string">'alpha(a) = %f, gamma(b) = %f\n'</span>, alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, b) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 0.8b) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 1.2b) = %f\n'</span>, error);
+
+<span class="comment">% Objective function plot</span>
+figure;
+plot(costs);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Log function'</span>);
+</pre><pre class="codeoutput">MRF prior: Discontinuity-adaptive Log function (LOW noise)
+RRMSE(noiseless, noisy) : 0.051898
+alpha(a) = 0.210000, gamma(b) = 0.502000
+RRMSE(a, b) = 0.046154
+RRMSE(0.8a, b) = 0.046264
+RRMSE(a, 0.8b) = 0.046001
+RRMSE(1.2a, b) = 0.046569
+RRMSE(a, 1.2b) = 0.046263
+</pre><img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <h2 id="6">Colormap plot of all three MRFs (LOW noise)</h2><pre class="codeinput">mx = max([max(img), max(actual), max(log_denoised), max(huber_denoised), max(quad_denoised)]);
+mn = min([min(img), min(actual), min(log_denoised), min(huber_denoised), min(quad_denoised)]);
+magnification = 200;
+
+figure;
+imshow(actual,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noiseless image'</span>);
+colorbar
+
+figure;
+imshow(img,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noisy image (LOW noise)'</span>);
+colorbar
+
+figure;
+imshow(quad_denoised,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Quadratic prior)'</span>);
+colorbar
+
+figure;
+imshow(huber_denoised,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Huber prior)'</span>);
+colorbar
+
+figure;
+imshow(log_denoised,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Log prior)'</span>);
+colorbar
+</pre><img vspace="5" hspace="5" src="myMainScript_04.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_05.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_06.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_07.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_08.png" alt=""> <h2 id="7">Reading the data (MEDIUM noise)</h2><pre class="codeinput">fprintf(<span class="string">'Analysis for MEDIUM noise level image\n'</span>);
+img = abs(double(imread(<span class="string">'../../data/mri_image_noise_level_medium.png'</span>))/255);
+</pre><pre class="codeoutput">Analysis for MEDIUM noise level image
+</pre><h2 id="8">MRF prior: Quadratic function (MEDIUM noise)</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Quadratic function (MEDIUM noise)\n'</span>);
+alpha_opt = 0.18; gamma_opt = 1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+quad_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters Testing</span>
+fprintf(<span class="string">'alpha(a) = %f\n'</span>, alpha_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a) = %f\n'</span>, error);
+
+<span class="comment">% Objective function plot</span>
+figure;
+plot(costs);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Quadratic function'</span>);
+</pre><pre class="codeoutput">MRF prior: Quadratic function (MEDIUM noise)
+RRMSE(noiseless, noisy) : 0.131247
+alpha(a) = 0.180000
+RRMSE(a) = 0.116103
+RRMSE(0.8a) = 0.116441
+RRMSE(1.2a) = 0.116499
+</pre><img vspace="5" hspace="5" src="myMainScript_09.png" alt=""> <h2 id="9">MRF prior: Discontinuity-adaptive Huber function (MEDIUM noise)</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Discontinuity-adaptive Huber function (MEDIUM noise)\n'</span>);
+alpha_opt = 0.5184; gamma_opt = 0.036; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+huber_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters</span>
+fprintf(<span class="string">'alpha(a) = %f, gamma(b) = %f\n'</span>, alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, b) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 0.8b) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 1.2b) = %f\n'</span>, error);
+
+<span class="comment">% Objective function plot</span>
+figure;
+plot(costs);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Huber function'</span>);
+</pre><pre class="codeoutput">MRF prior: Discontinuity-adaptive Huber function (MEDIUM noise)
+RRMSE(noiseless, noisy) : 0.131247
+alpha(a) = 0.518400, gamma(b) = 0.036000
+RRMSE(a, b) = 0.112744
+RRMSE(0.8a, b) = 0.113579
+RRMSE(a, 0.8b) = 0.112542
+RRMSE(1.2a, b) = 0.115040
+RRMSE(a, 1.2b) = 0.113376
+</pre><img vspace="5" hspace="5" src="myMainScript_10.png" alt=""> <h2 id="10">MRF prior: Discontinuity-adaptive Log function (MEDIUM noise)</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Discontinuity-adaptive Log function (MEDIUM noise)\n'</span>);
+alpha_opt = 0.24; gamma_opt = 0.448; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+log_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters</span>
+fprintf(<span class="string">'alpha(a) = %f, gamma(b) = %f\n'</span>, alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, b) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 0.8b) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 1.2b) = %f\n'</span>, error);
+
+<span class="comment">% Objective function plot</span>
+figure;
+plot(costs);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Log function'</span>);
+</pre><pre class="codeoutput">MRF prior: Discontinuity-adaptive Log function (MEDIUM noise)
+RRMSE(noiseless, noisy) : 0.131247
+alpha(a) = 0.240000, gamma(b) = 0.448000
+RRMSE(a, b) = 0.116804
+RRMSE(0.8a, b) = 0.118418
+RRMSE(a, 0.8b) = 0.116908
+RRMSE(1.2a, b) = 0.115774
+RRMSE(a, 1.2b) = 0.116740
+</pre><img vspace="5" hspace="5" src="myMainScript_11.png" alt=""> <h2 id="11">Colormap plot of all three MRFs (MEDIUM noise)</h2><pre class="codeinput">mx = max([max(img), max(actual), max(log_denoised), max(huber_denoised), max(quad_denoised)]);
+mn = min([min(img), min(actual), min(log_denoised), min(huber_denoised), min(quad_denoised)]);
+magnification = 200;
+
+figure;
+imshow(actual,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noiseless image'</span>);
+colorbar
+
+figure;
+imshow(img,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noisy image (MEDIUM noise)'</span>);
+colorbar
+
+figure;
+imshow(quad_denoised,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Quadratic prior)'</span>);
+colorbar
+
+figure;
+imshow(huber_denoised,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Huber prior)'</span>);
+colorbar
+
+figure;
+imshow(log_denoised,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Log prior)'</span>);
+colorbar
+</pre><img vspace="5" hspace="5" src="myMainScript_12.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_13.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_14.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_15.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_16.png" alt=""> <h2 id="12">Reading the data (HIGH noise)</h2><pre class="codeinput">fprintf(<span class="string">'Analysis for HIGH noise level image\n'</span>);
+img = abs(double(imread(<span class="string">'../../data/mri_image_noise_level_high.png'</span>))/255);
+</pre><pre class="codeoutput">Analysis for HIGH noise level image
+</pre><h2 id="13">MRF prior: Quadratic function (HIGH noise)</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Quadratic function (HIGH noise)\n'</span>);
+alpha_opt = 0.24; gamma_opt = 1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+quad_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters Testing</span>
+fprintf(<span class="string">'alpha(a) = %f\n'</span>, alpha_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a) = %f\n'</span>, error);
+
+<span class="comment">% Objective function plot</span>
+figure;
+plot(costs);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Quadratic function'</span>);
+</pre><pre class="codeoutput">MRF prior: Quadratic function (HIGH noise)
+RRMSE(noiseless, noisy) : 0.155534
+alpha(a) = 0.240000
+RRMSE(a) = 0.127077
+RRMSE(0.8a) = 0.127766
+RRMSE(1.2a) = 0.127648
+</pre><img vspace="5" hspace="5" src="myMainScript_17.png" alt=""> <h2 id="14">MRF prior: Discontinuity-adaptive Huber function (HIGH noise)</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Discontinuity-adaptive Huber function (HIGH noise)\n'</span>);
+alpha_opt = 0.48; gamma_opt = 0.06; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+huber_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters</span>
+fprintf(<span class="string">'alpha(a) = %f, gamma(b) = %f\n'</span>, alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, b) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 0.8b) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 1.2b) = %f\n'</span>, error);
+
+<span class="comment">% Objective function plot</span>
+figure;
+plot(costs);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Huber function'</span>);
+</pre><pre class="codeoutput">MRF prior: Discontinuity-adaptive Huber function (HIGH noise)
+RRMSE(noiseless, noisy) : 0.155534
+alpha(a) = 0.480000, gamma(b) = 0.060000
+RRMSE(a, b) = 0.124114
+RRMSE(0.8a, b) = 0.126240
+RRMSE(a, 0.8b) = 0.124157
+RRMSE(1.2a, b) = 0.125333
+RRMSE(a, 1.2b) = 0.124559
+</pre><img vspace="5" hspace="5" src="myMainScript_18.png" alt=""> <h2 id="15">MRF prior: Discontinuity-adaptive Log function (HIGH noise)</h2><pre class="codeinput">fprintf(<span class="string">'MRF prior: Discontinuity-adaptive Log function (HIGH noise)\n'</span>);
+alpha_opt = 0.4; gamma_opt = 0.5632; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+log_denoised = abs(noisy);
+
+<span class="comment">% RRMSE</span>
+error = rrmse(actual, img);
+fprintf(<span class="string">'RRMSE(noiseless, noisy) : %f\n'</span>,error);
+
+<span class="comment">% Optimal Parameters</span>
+fprintf(<span class="string">'alpha(a) = %f, gamma(b) = %f\n'</span>, alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, b) = %f\n'</span>, error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(0.8a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 0.8b) = %f\n'</span>, error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(1.2a, b) = %f\n'</span>, error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf(<span class="string">'RRMSE(a, 1.2b) = %f\n'</span>, error);
+
+<span class="comment">% Objective function plot</span>
+figure;
+plot(costs);
+xlabel(<span class="string">'Number of iterations'</span>)
+ylabel(<span class="string">'Value of Objective (Cost) function'</span>);
+title(<span class="string">'MRF prior: Log function'</span>);
+</pre><pre class="codeoutput">MRF prior: Discontinuity-adaptive Log function (HIGH noise)
+RRMSE(noiseless, noisy) : 0.155534
+alpha(a) = 0.400000, gamma(b) = 0.563200
+RRMSE(a, b) = 0.126402
+RRMSE(0.8a, b) = 0.128116
+RRMSE(a, 0.8b) = 0.155406
+RRMSE(1.2a, b) = 0.126733
+RRMSE(a, 1.2b) = 0.126466
+</pre><img vspace="5" hspace="5" src="myMainScript_19.png" alt=""> <h2 id="16">Colormap plot of all three MRFs (HIGH noise)</h2><pre class="codeinput">mx = max([max(img), max(actual), max(log_denoised), max(huber_denoised), max(quad_denoised)]);
+mn = min([min(img), min(actual), min(log_denoised), min(huber_denoised), min(quad_denoised)]);
+magnification = 200;
+
+figure;
+imshow(actual,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noiseless image'</span>);
+colorbar
+
+figure;
+imshow(img,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Noisy image (HIGH noise)'</span>);
+colorbar
+
+figure;
+imshow(quad_denoised,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Quadratic prior)'</span>);
+colorbar
+
+figure;
+imshow(huber_denoised,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Huber prior)'</span>);
+colorbar
+
+figure;
+imshow(log_denoised,[mn, mx], <span class="string">'InitialMagnification'</span>, magnification);
+title(<span class="string">'Denoised image (Log prior)'</span>);
+colorbar
+</pre><img vspace="5" hspace="5" src="myMainScript_20.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_21.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_22.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_23.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_24.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Prepping the script
+clc; clear; close all;
+addpath('../functions/');
+actual = abs(double(imread('../../data/mri_image_noiseless.png'))/255);
+
+%% Reading the data (LOW noise)
+fprintf('Analysis for LOW noise level image\n');
+img = abs(double(imread('../../data/mri_image_noise_level_low.png'))/255);
+
+%% MRF prior: Quadratic function (LOW noise)
+fprintf('MRF prior: Quadratic function (LOW noise)\n');
+alpha_opt = 0.085; gamma_opt = 1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+quad_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters Testing
+fprintf('alpha(a) = %f\n', alpha_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a) = %f\n', error);
+
+% Objective function plot
+figure;
+plot(costs);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Quadratic function');
+
+%% MRF prior: Discontinuity-adaptive Huber function (LOW noise)
+fprintf('MRF prior: Discontinuity-adaptive Huber function (LOW noise)\n');
+alpha_opt = 0.373248; gamma_opt = 0.026214; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+huber_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters
+fprintf('alpha(a) = %f, gamma(b) = %f\n', alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, b) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 0.8b) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 1.2b) = %f\n', error);
+
+% Objective function plot
+figure;
+plot(costs);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Huber function');
+
+%% MRF prior: Discontinuity-adaptive Log function (LOW noise)
+fprintf('MRF prior: Discontinuity-adaptive Log function (LOW noise)\n');
+alpha_opt = 0.210; gamma_opt = 0.502; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+log_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters
+fprintf('alpha(a) = %f, gamma(b) = %f\n', alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, b) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 0.8b) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 1.2b) = %f\n', error);
+
+% Objective function plot
+figure;
+plot(costs);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Log function');
+
+%% Colormap plot of all three MRFs (LOW noise)
+mx = max([max(img), max(actual), max(log_denoised), max(huber_denoised), max(quad_denoised)]);
+mn = min([min(img), min(actual), min(log_denoised), min(huber_denoised), min(quad_denoised)]);
+magnification = 200;
+
+figure;
+imshow(actual,[mn, mx], 'InitialMagnification', magnification);
+title('Noiseless image');
+colorbar
+
+figure;
+imshow(img,[mn, mx], 'InitialMagnification', magnification);
+title('Noisy image (LOW noise)');
+colorbar
+
+figure;
+imshow(quad_denoised,[mn, mx], 'InitialMagnification', magnification);
+title('Denoised image (Quadratic prior)');
+colorbar
+
+figure;
+imshow(huber_denoised,[mn, mx], 'InitialMagnification', magnification);
+title('Denoised image (Huber prior)');
+colorbar
+
+figure;
+imshow(log_denoised,[mn, mx], 'InitialMagnification', magnification);
+title('Denoised image (Log prior)');
+colorbar
+
+%% Reading the data (MEDIUM noise)
+fprintf('Analysis for MEDIUM noise level image\n');
+img = abs(double(imread('../../data/mri_image_noise_level_medium.png'))/255);
+
+%% MRF prior: Quadratic function (MEDIUM noise)
+fprintf('MRF prior: Quadratic function (MEDIUM noise)\n');
+alpha_opt = 0.18; gamma_opt = 1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+quad_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters Testing
+fprintf('alpha(a) = %f\n', alpha_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a) = %f\n', error);
+
+% Objective function plot
+figure;
+plot(costs);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Quadratic function');
+
+%% MRF prior: Discontinuity-adaptive Huber function (MEDIUM noise)
+fprintf('MRF prior: Discontinuity-adaptive Huber function (MEDIUM noise)\n');
+alpha_opt = 0.5184; gamma_opt = 0.036; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+huber_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters
+fprintf('alpha(a) = %f, gamma(b) = %f\n', alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, b) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 0.8b) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 1.2b) = %f\n', error);
+
+% Objective function plot
+figure;
+plot(costs);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Huber function');
+
+%% MRF prior: Discontinuity-adaptive Log function (MEDIUM noise)
+fprintf('MRF prior: Discontinuity-adaptive Log function (MEDIUM noise)\n');
+alpha_opt = 0.24; gamma_opt = 0.448; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+log_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters
+fprintf('alpha(a) = %f, gamma(b) = %f\n', alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, b) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 0.8b) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 1.2b) = %f\n', error);
+
+% Objective function plot
+figure;
+plot(costs);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Log function');
+
+%% Colormap plot of all three MRFs (MEDIUM noise)
+mx = max([max(img), max(actual), max(log_denoised), max(huber_denoised), max(quad_denoised)]);
+mn = min([min(img), min(actual), min(log_denoised), min(huber_denoised), min(quad_denoised)]);
+magnification = 200;
+
+figure;
+imshow(actual,[mn, mx], 'InitialMagnification', magnification);
+title('Noiseless image');
+colorbar
+
+figure;
+imshow(img,[mn, mx], 'InitialMagnification', magnification);
+title('Noisy image (MEDIUM noise)');
+colorbar
+
+figure;
+imshow(quad_denoised,[mn, mx], 'InitialMagnification', magnification);
+title('Denoised image (Quadratic prior)');
+colorbar
+
+figure;
+imshow(huber_denoised,[mn, mx], 'InitialMagnification', magnification);
+title('Denoised image (Huber prior)');
+colorbar
+
+figure;
+imshow(log_denoised,[mn, mx], 'InitialMagnification', magnification);
+title('Denoised image (Log prior)');
+colorbar
+
+%% Reading the data (HIGH noise)
+fprintf('Analysis for HIGH noise level image\n');
+img = abs(double(imread('../../data/mri_image_noise_level_high.png'))/255);
+
+%% MRF prior: Quadratic function (HIGH noise)
+fprintf('MRF prior: Quadratic function (HIGH noise)\n');
+alpha_opt = 0.24; gamma_opt = 1; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+quad_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters Testing
+fprintf('alpha(a) = %f\n', alpha_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @quad_grad, @quad_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a) = %f\n', error);
+
+% Objective function plot
+figure;
+plot(costs);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Quadratic function');
+
+%% MRF prior: Discontinuity-adaptive Huber function (HIGH noise)
+fprintf('MRF prior: Discontinuity-adaptive Huber function (HIGH noise)\n');
+alpha_opt = 0.48; gamma_opt = 0.06; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+huber_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters
+fprintf('alpha(a) = %f, gamma(b) = %f\n', alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, b) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 0.8b) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @huber_grad, @huber_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 1.2b) = %f\n', error);
+
+% Objective function plot
+figure;
+plot(costs);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Huber function');
+
+%% MRF prior: Discontinuity-adaptive Log function (HIGH noise)
+fprintf('MRF prior: Discontinuity-adaptive Log function (HIGH noise)\n');
+alpha_opt = 0.4; gamma_opt = 0.5632; eps = 1e-8; epochs = 1e9;
+
+alpha = alpha_opt; gamma = gamma_opt;
+[noisy, costs] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+log_denoised = abs(noisy);
+
+% RRMSE
+error = rrmse(actual, img);
+fprintf('RRMSE(noiseless, noisy) : %f\n',error);
+
+% Optimal Parameters
+fprintf('alpha(a) = %f, gamma(b) = %f\n', alpha_opt, gamma_opt);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, b) = %f\n', error);
+
+alpha = 0.8 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(0.8a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 0.8 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 0.8b) = %f\n', error);
+
+alpha = 1.2 * alpha_opt; gamma = gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(1.2a, b) = %f\n', error);
+
+alpha = alpha_opt; gamma = 1.2 * gamma_opt;
+[noisy, ~] = descent(img, eps, alpha, gamma, epochs, @log_grad, @log_cost);
+error = rrmse(actual, noisy);
+fprintf('RRMSE(a, 1.2b) = %f\n', error);
+
+% Objective function plot
+figure;
+plot(costs);
+xlabel('Number of iterations')
+ylabel('Value of Objective (Cost) function');
+title('MRF prior: Log function');
+
+%% Colormap plot of all three MRFs (HIGH noise)
+mx = max([max(img), max(actual), max(log_denoised), max(huber_denoised), max(quad_denoised)]);
+mn = min([min(img), min(actual), min(log_denoised), min(huber_denoised), min(quad_denoised)]);
+magnification = 200;
+
+figure;
+imshow(actual,[mn, mx], 'InitialMagnification', magnification);
+title('Noiseless image');
+colorbar
+
+figure;
+imshow(img,[mn, mx], 'InitialMagnification', magnification);
+title('Noisy image (HIGH noise)');
+colorbar
+
+figure;
+imshow(quad_denoised,[mn, mx], 'InitialMagnification', magnification);
+title('Denoised image (Quadratic prior)');
+colorbar
+
+figure;
+imshow(huber_denoised,[mn, mx], 'InitialMagnification', magnification);
+title('Denoised image (Huber prior)');
+colorbar
+
+figure;
+imshow(log_denoised,[mn, mx], 'InitialMagnification', magnification);
+title('Denoised image (Log prior)');
+colorbar
+
+##### SOURCE END #####
+--></body></html>
